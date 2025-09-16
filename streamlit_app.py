@@ -1,7 +1,10 @@
-import streamlit as st
-import pandas as pd
+import base64
 import math
 from pathlib import Path
+
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
 
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -57,95 +60,165 @@ def get_gdp_data():
 
     return gdp_df
 
-gdp_df = get_gdp_data()
 
-# -----------------------------------------------------------------------------
-# Draw the actual page
+@st.cache_data
+def get_schedule_html() -> str:
+    """Read the static timetable HTML from disk."""
 
-# Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
+    schedule_path = Path(__file__).parent/'assets/leman_bicer_schedule.html'
+    return schedule_path.read_text(encoding='utf-8')
 
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
 
-# Add some spacing
-''
-''
+def _build_preview_data_url(html: str) -> str:
+    """Return a data URL that can be used to open the timetable in a new tab."""
 
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
+    encoded = base64.b64encode(html.encode('utf-8')).decode('ascii')
+    return f'data:text/html;base64,{encoded}'
 
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
 
-countries = gdp_df['Country Code'].unique()
+def render_gdp_dashboard() -> None:
+    gdp_df = get_gdp_data()
 
-if not len(countries):
-    st.warning("Select at least one country")
+    st.markdown(
+        """
+        # :earth_americas: GDP dashboard
 
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
+        Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
+        notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
+        But it's otherwise a great (and did I mention _free_?) source of data.
+        """
+    )
 
-''
-''
-''
+    st.write('')
+    st.write('')
 
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
+    min_value = gdp_df['Year'].min()
+    max_value = gdp_df['Year'].max()
 
-st.header('GDP over time', divider='gray')
+    from_year, to_year = st.slider(
+        'Which years are you interested in?',
+        min_value=min_value,
+        max_value=max_value,
+        value=[min_value, max_value]
+    )
 
-''
+    countries = gdp_df['Country Code'].unique()
 
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
+    if not len(countries):
+        st.warning('Select at least one country')
+
+    selected_countries = st.multiselect(
+        'Which countries would you like to view?',
+        countries,
+        ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN']
+    )
+
+    st.write('')
+    st.write('')
+    st.write('')
+
+    filtered_gdp_df = gdp_df[
+        (gdp_df['Country Code'].isin(selected_countries))
+        & (gdp_df['Year'] <= to_year)
+        & (from_year <= gdp_df['Year'])
+    ]
+
+    st.header('GDP over time', divider='gray')
+
+    st.write('')
+
+    st.line_chart(
+        filtered_gdp_df,
+        x='Year',
+        y='GDP',
+        color='Country Code',
+    )
+
+    st.write('')
+    st.write('')
+
+    first_year = gdp_df[gdp_df['Year'] == from_year]
+    last_year = gdp_df[gdp_df['Year'] == to_year]
+
+    st.header(f'GDP in {to_year}', divider='gray')
+
+    st.write('')
+
+    cols = st.columns(4)
+
+    for i, country in enumerate(selected_countries):
+        col = cols[i % len(cols)]
+
+        with col:
+            first_gdp_series = first_year[first_year['Country Code'] == country]['GDP']
+            last_gdp_series = last_year[last_year['Country Code'] == country]['GDP']
+
+            if first_gdp_series.empty or last_gdp_series.empty:
+                st.metric(
+                    label=f'{country} GDP',
+                    value='Data unavailable',
+                    delta='n/a',
+                    delta_color='off'
+                )
+                continue
+
+            first_gdp = first_gdp_series.iat[0] / 1_000_000_000
+            last_gdp = last_gdp_series.iat[0] / 1_000_000_000
+
+            if math.isnan(first_gdp) or math.isnan(last_gdp):
+                growth = 'n/a'
+                delta_color = 'off'
+            else:
+                growth = f'{last_gdp / first_gdp:,.2f}x'
+                delta_color = 'normal'
+
+            st.metric(
+                label=f'{country} GDP',
+                value=f'{last_gdp:,.0f}B',
+                delta=growth,
+                delta_color=delta_color
+            )
+
+
+def render_schedule_view() -> None:
+    st.title('LEMAN BİÇER - Ders Programı (Tablo)')
+    st.caption('2025-2026 Güz Dönemi')
+
+    schedule_html = get_schedule_html()
+
+    preview_tab, source_tab = st.tabs(['🖼️ Ön izleme', '🧾 HTML kaynağı'])
+
+    with preview_tab:
+        st.info('Programı yazdırmadan önce aşağıdaki ön izleme (canvas) alanını kullanabilirsiniz.')
+
+        preview_link = _build_preview_data_url(schedule_html)
+        st.markdown(
+            f'<a href="{preview_link}" target="_blank" rel="noopener" '
+            'style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.6rem 1rem;'
+            'background-color:#2563eb;color:#ffffff;border-radius:0.5rem;text-decoration:none;'
+            'font-weight:600;">🡥 Ön izlemeyi yeni sekmede aç</a>',
+            unsafe_allow_html=True,
+        )
+
+        components.html(schedule_html, height=1100, scrolling=True)
+
+    with source_tab:
+        st.code(schedule_html, language='html')
+        st.download_button(
+            'HTML dosyasını indir',
+            schedule_html,
+            file_name='leman-bicer-ders-programi.html',
+            mime='text/html',
+        )
+
+
+view = st.sidebar.radio(
+    'Select a view',
+    ('GDP dashboard', 'Leman Biçer ders programı'),
+    help='Switch between the interactive GDP charts and the provided timetable.'
 )
 
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[first_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[last_year['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
+if view == 'GDP dashboard':
+    render_gdp_dashboard()
+else:
+    render_schedule_view()
