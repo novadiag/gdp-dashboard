@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ders Programı (Tablo) - Leman Biçer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .timetable {
+            border-collapse: collapse;
+            width: 100%;
+            table-layout: fixed;
+        }
+        .timetable th, .timetable td {
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            text-align: center;
+            height: 50px;
+        }
+        .timetable th {
+            background-color: #4a5568;
+            color: white;
+            font-weight: 600;
+        }
+        .timetable .time-slot {
+            font-weight: 500;
+            background-color: #f1f5f9;
+            width: 120px;
+        }
+        .lesson-cell {
+            color: #1e293b;
+            font-weight: 500;
+            vertical-align: middle;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
+        }
+        .lesson-cell:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .lesson-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+        }
+        .lesson-info .name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .lesson-info .lecturer, .lesson-info .room {
+            font-size: 0.75rem;
+            color: #475569;
+        }
+
+        .practical-lesson {
+            background-image: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0.2) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+        }
+
+        /* Renkler */
+        .ders-1 { background-color: #dbeafe; }
+        .ders-2 { background-color: #cffafe; }
+        .ders-3 { background-color: #e0e7ff; }
+        .ders-4 { background-color: #fef9c3; }
+        .ders-5 { background-color: #fee2e2; }
+        .ders-6 { background-color: #d1fae5; }
+        .ders-7 { background-color: #fae8ff; }
+        .ders-8 { background-color: #ffedd5; }
+        .ders-9 { background-color: #e0f2fe; }
+
+        @media print {
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .no-print {
+                display: none;
+            }
+            .container {
+                margin: 0;
+                padding: 0;
+                max-width: 100%;
+            }
+            .timetable {
+                font-size: 10px;
+            }
+             .lesson-info .name {
+                font-size: 0.8rem;
+            }
+            .lesson-info .lecturer, .lesson-info .room {
+                font-size: 0.65rem;
+            }
+        }
+    </style>
+</head>
+<body class="antialiased text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <header class="bg-white shadow rounded-lg p-6 mb-8 flex justify-between items-center no-print">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">LEMAN BİÇER - Ders Programı (Tablo)</h1>
+                <p class="text-md text-gray-500">2025-2026 Güz Dönemi</p>
+            </div>
+            <button onclick="window.print()" class="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                <i data-lucide="printer"></i>
+                <span>Yazdır / PDF Olarak Kaydet</span>
+            </button>
+        </header>
+
+        <div class="bg-white p-6 rounded-lg shadow">
+            <table class="timetable">
+                <thead>
+                    <tr>
+                        <th>Saat</th>
+                        <th>Pazartesi</th>
+                        <th>Salı</th>
+                        <th>Çarşamba</th>
+                        <th>Perşembe</th>
+                        <th>Cuma</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td class="time-slot">08:30 - 09:00</td><td></td><td></td>
+                        <td rowspan="6" class="lesson-cell ders-3">
+                            <div class="lesson-info">
+                                <span class="name">Dokuma Kumaş Yapı Bilgisi</span>
+                                <span class="lecturer">Prof.Dr. EBRU ÇORUH</span>
+                                <span class="room">D3B[245]</span>
+                            </div>
+                        </td><td></td>
+                        <td rowspan="7" class="lesson-cell ders-2 practical-lesson">
+                             <div class="lesson-info">
+                                <span class="name">Heykel Sanatına Giriş (Uyg.)</span>
+                                <span class="lecturer">Dr.Öğr.Üyesi M. ALİYEV</span>
+                                <span class="room">D02[25]</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr><td class="time-slot">09:00 - 09:30</td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">09:30 - 10:00</td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">10:00 - 10:30</td>
+                        <td rowspan="4" class="lesson-cell ders-1">
+                             <div class="lesson-info">
+                                <span class="name">Mesleki İngilizce-I</span>
+                                <span class="lecturer">Öğr.Gör. M. B. ÜZÜMCÜ</span>
+                                <span class="room">D3B[145]</span>
+                            </div>
+                        </td><td></td>
+                        <td rowspan="2" class="lesson-cell ders-5">
+                            <div class="lesson-info">
+                                <span class="name">Sanat Felsefesi-I</span>
+                                <span class="lecturer">Öğr.Gör. C. YILDIRIM</span>
+                                <span class="room">D23[65]</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr><td class="time-slot">10:30 - 11:00</td><td></td></tr>
+                    <tr><td class="time-slot">11:00 - 11:30</td>
+                        <td rowspan="7" class="lesson-cell ders-6 practical-lesson">
+                            <div class="lesson-info">
+                                <span class="name">Giysi Atölyesi-I (Uyg.)</span>
+                                <span class="lecturer">Öğr.Gör. TUĞBA ÖZTÜRK</span>
+                                <span class="room">DOH[40]</span>
+                            </div>
+                        </td><td></td>
+                        <td rowspan="4" class="lesson-cell ders-7">
+                             <div class="lesson-info">
+                                <span class="name">Tekstilde Renk Bilgisi</span>
+                                <span class="lecturer">Doç.Dr. ESİN SARIOĞLU</span>
+                                <span class="room">201[40]</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr><td class="time-slot">11:30 - 12:00</td></tr>
+                    <tr><td class="time-slot">12:00 - 12:30</td><td></td>
+                        <td rowspan="4" class="lesson-cell ders-4">
+                            <div class="lesson-info">
+                                <span class="name">Tekstil ve Moda Tarihi</span>
+                                <span class="lecturer">Prof.Dr. Y. A. KALBEK</span>
+                                <span class="room">201[40]</span>
+                            </div>
+                        </td><td></td><td></td>
+                    </tr>
+                    <tr><td class="time-slot">12:30 - 13:00</td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">13:00 - 13:30</td>
+                        <td rowspan="7" class="lesson-cell ders-8 practical-lesson">
+                            <div class="lesson-info">
+                                <span class="name">Moda İllüstrasyonu-I (Uyg.)</span>
+                                <span class="lecturer">Öğr.Gör. M. B. ÜZÜMCÜ</span>
+                                <span class="room">116[30]</span>
+                            </div>
+                        </td>
+                        <td rowspan="4" class="lesson-cell ders-9">
+                            <div class="lesson-info">
+                                <span class="name">Sağlığa Bakış</span>
+                                <span class="lecturer">Prof.Dr. MEHMET CESUR</span>
+                                <span class="room">D 201[50]</span>
+                            </div>
+                        </td><td></td>
+                    </tr>
+                    <tr><td class="time-slot">13:30 - 14:00</td><td></td></tr>
+                    <tr><td class="time-slot">14:00 - 14:30</td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">14:30 - 15:00</td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">15:00 - 15:30</td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">15:30 - 16:00</td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">16:00 - 16:30</td><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td class="time-slot">16:30 - 17:00</td>
+                        <td class="border-transparent bg-transparent"></td><td></td><td></td><td></td><td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
